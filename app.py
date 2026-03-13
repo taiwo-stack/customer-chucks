@@ -28,15 +28,51 @@ def load_models():
         'xgb': 'XGBoost'
     }
     models = {}
-    for key, display_name in model_map.items():
-        path = f"models/{key}.pkl"
-        if os.path.exists(path):
-            models[display_name] = joblib.load(path)
     
-    if os.path.exists("models/preprocessor.pkl"):
-        preprocessor = joblib.load("models/preprocessor.pkl")
-    else:
-        preprocessor = None
+    # Check if we need to train because files are missing or incompatible
+    needs_training = False
+    if not os.path.exists("models/metrics.csv"):
+        needs_training = True
+    
+    # Try loading, if any fails with an error (like the one you saw), trigger training
+    try:
+        for key, display_name in model_map.items():
+            path = f"models/{key}.pkl"
+            if os.path.exists(path):
+                models[display_name] = joblib.load(path)
+            else:
+                needs_training = True
+        
+        if os.path.exists("models/preprocessor.pkl"):
+            preprocessor = joblib.load("models/preprocessor.pkl")
+        else:
+            preprocessor = True # Placeholder logic, will be handled by training
+    except Exception as e:
+        st.warning(f"Model compatibility issue detected. Re-training for current environment... ({str(e)})")
+        needs_training = True
+
+    if needs_training:
+        with st.spinner("Initializing models for the first time... this may take 30 seconds."):
+            try:
+                from src.train_models import train_and_evaluate
+                from src.data_prep import download_and_preprocess
+                
+                # Check for raw data
+                if not os.path.exists("data/processed/train.csv"):
+                    download_and_preprocess()
+                
+                train_and_evaluate()
+                
+                # Try reloading after training
+                models = {}
+                for key, display_name in model_map.items():
+                    path = f"models/{key}.pkl"
+                    models[display_name] = joblib.load(path)
+                preprocessor = joblib.load("models/preprocessor.pkl")
+            except Exception as e:
+                st.error(f"Failed to auto-train: {e}")
+                preprocessor = None
+
     return models, preprocessor
 
 # --- Main App ---
