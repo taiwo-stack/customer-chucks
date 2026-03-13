@@ -80,7 +80,7 @@ def split_and_save(df, processed_path):
     
     print(f"Data split and saved to {processed_path}")
 
-if __name__ == "__main__":
+def run_data_prep():
     url = "https://raw.githubusercontent.com/IBM/telco-customer-churn-on-icp4d/master/data/Telco-Customer-Churn.csv"
     raw_path = "data/raw/Telco-Customer-Churn.csv"
     processed_path = "data/processed"
@@ -93,3 +93,6 @@ if __name__ == "__main__":
     df = clean_data(df)
     df = feature_engineering(df)
     split_and_save(df, processed_path)
+
+if __name__ == "__main__":
+    run_data_prep()

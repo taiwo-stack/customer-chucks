@@ -55,11 +55,11 @@ def load_models():
         with st.spinner("Initializing models for the first time... this may take 30 seconds."):
             try:
                 from src.train_models import train_and_evaluate
-                from src.data_prep import download_and_preprocess
+                from src.data_prep import run_data_prep
                 
                 # Check for raw data
                 if not os.path.exists("data/processed/train.csv"):
-                    download_and_preprocess()
+                    run_data_prep()
                 
                 train_and_evaluate()
                 
