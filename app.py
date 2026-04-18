@@ -75,9 +75,35 @@ def load_models():
 
     return models, preprocessor
 
+# --- Sidebar for Management ---
+def sidebar_management():
+    with st.sidebar:
+        st.header("⚙️ System Management")
+        st.write("Force a full system refresh of data and models.")
+        
+        if st.button("🔄 Retrain Foundation Models", use_container_width=True, help="This will re-run data processing and model training. Useful if you've updated the raw data."):
+            with st.spinner("Re-training all models..."):
+                try:
+                    from src.train_models import train_and_evaluate
+                    from src.data_prep import run_data_prep
+                    
+                    # 1. Re-run pipeline
+                    run_data_prep()
+                    train_and_evaluate()
+                    
+                    # 2. Clear Streamlit Cache to load new files
+                    st.cache_data.clear()
+                    st.cache_resource.clear()
+                    
+                    st.success("🎉 Models retrained and cache cleared successfully!")
+                    st.toast("Success: Models updated!")
+                except Exception as e:
+                    st.error(f"Error during manual retraining: {e}")
+
 # --- Main App ---
 def main():
     st.title("🎯 Customer Churn Prediction & CLV Analysis")
+    sidebar_management()
     
     if not os.path.exists("models/metrics.csv") or not os.path.exists("data/processed/train.csv"):
         st.warning("Project data or models not found. Please ensure all preparation scripts have run.")
